@@ -170,23 +170,26 @@ where type='PC'
 group by maker
 having count(model)>=3
 
-21
---
+-- Задание: 21
+-- Найдите максимальную цену ПК, выпускаемых каждым производителем, у которого есть модели в таблице PC. Вывести: maker, максимальная цена. 
+
 select maker, max(price)
 from product
 join pc
 on product.model=pc.model
 group by maker
 
-22
---
+-- Задание: 22
+-- Для каждого значения скорости ПК, превышающего 600 МГц, определите среднюю цену ПК с такой же скоростью. Вывести: speed, средняя цена. 
+
 select speed, avg(price)
 from pc
 where speed>600
 group by speed
 
-23
---
+-- Задание: 23
+-- Найдите производителей, которые производили бы как ПК со скоростью не менее 750 МГц, так и ПК-блокноты со скоростью не менее 750 МГц. Вывести: Maker
+
 select maker
 from product
 join pc
@@ -199,8 +202,9 @@ join laptop
 on product.model=laptop.model
 where speed>=750
 
-24
---
+-- Задание: 24
+-- Перечислите номера моделей любых типов, имеющих самую высокую цену по всей имеющейся в базе данных продукции. 
+
 select model
 from
 (select model, price
@@ -222,8 +226,9 @@ union
 select model, price
 from printer) mp)
 
-25
---
+-- Задание: 25
+-- Найдите производителей принтеров, которые производят ПК с наименьшим объемом RAM и с самым быстрым процессором среди всех ПК, имеющих наименьший объем RAM. Вывести: Maker 
+
 select distinct maker
 from product
 join pc
@@ -232,8 +237,9 @@ where pc.ram=(select min(ram) from pc)
   and pc.speed=(select max(speed) from pc where pc.ram=(select min(ram) from pc))
   and maker in (select maker from product where type='Printer')
 
-26
---
+-- Задание: 26
+-- Найдите среднюю цену ПК и ПК-блокнотов, выпущенных производителем A (латинская буква). Вывести: одна общая средняя цена.
+
 select avg(p.price)
 from
 (select price
@@ -246,8 +252,9 @@ from product
 join laptop
 on product.model=laptop.model and maker='A') p
 
-27
---
+-- Задание: 27
+-- Найдите средний размер диска ПК каждого из тех производителей, которые выпускают и принтеры. Вывести: maker, средний размер HD. 
+
 select maker, avg(hd)
 from product
 join pc
@@ -255,8 +262,9 @@ on product.model=pc.model
 where maker in (select maker from product where type='Printer')
 group by maker
 
-28
---
+-- Задание: 28
+-- Используя таблицу Product, определить количество производителей, выпускающих по одной модели.
+
 select count(m.maker)
 from
 (select maker
@@ -264,8 +272,9 @@ from product
 group by maker
 having count(model)=1) m
 
-29
---
+-- Задание: 29 (Serge I: 2003-02-14)
+-- В предположении, что приход и расход денег на каждом пункте приема фиксируется не чаще одного раза в день [т.е. первичный ключ (пункт, дата)], написать запрос с выходными данными (пункт, дата, приход, расход). Использовать таблицы Income_o и Outcome_o.
+
 select
 case when i.point is null
   then o.point
@@ -281,8 +290,10 @@ full join outcome_o o
 on i.point=o.point
   and i.date=o.date
 
-30
---
+-- Задание: 30
+-- В предположении, что приход и расход денег на каждом пункте приема фиксируется произвольное число раз (первичным ключом в таблицах является столбец code), требуется получить таблицу, в которой каждому пункту за каждую дату выполнения операций будет соответствовать одна строка.
+-- Вывод: point, date, суммарный расход пункта за день (out), суммарный приход пункта за день (inc). Отсутствующие значения считать неопределенными (NULL). 
+
 select
 case when i.point is null
   then o.point
@@ -304,30 +315,56 @@ group by point, date) o
 on i.point=o.point
   and i.date=o.date
 
-31
---
+-- Задание: 31
+-- Для классов кораблей, калибр орудий которых не менее 16 дюймов, укажите класс и страну. 
+
 select class, country
 from classes
 where bore>=16
 
-32
---
+-- Задание: 32
+-- Одной из характеристик корабля является половина куба калибра его главных орудий (mw). С точностью до 2 десятичных знаков определите среднее значение mw для кораблей каждой страны, у которой есть корабли в базе данных. 
 
-33
---
+select country, cast(avg(mw) as numeric(6,2))
+from ships s
+right join
+(select class, country, bore*bore*bore/2 mw
+from classes) c
+on s.class=c.class
+group by country
+
+
+-- Задание: 33
+-- Укажите корабли, потопленные в сражениях в Северной Атлантике (North Atlantic). Вывод: ship. 
+
 select ship
 from outcomes
 where battle='North Atlantic'
   and result='sunk'
 
-34
---
+-- Задание: 34
+-- По Вашингтонскому международному договору от начала 1922 г. запрещалось строить линейные корабли водоизмещением более 35 тыс.тонн. Укажите корабли, нарушившие этот договор (учитывать только корабли c известным годом спуска на воду). Вывести названия кораблей. 
 
-35
---
+select s.name
+from ships s
+join classes c
+on s.class=c.class
+where s.launched>1922
+  and type='bb'
+  and displacement>35000
 
-36
---
+
+-- Задание: 35
+-- В таблице Product найти модели, которые состоят только из цифр или только из латинских букв (A-Z, без учета регистра). Вывод: номер модели, тип модели.
+
+select model, type
+from product[0-9]
+where model like '[0-9][0-9][0-9][0-9]'
+  or model like '[a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]'
+
+-- Задание: 36
+-- Перечислите названия головных кораблей, имеющихся в базе данных (учесть корабли в Outcomes). 
+
 select s.n
 from
 (select name n
@@ -338,11 +375,28 @@ from outcomes) s
 join classes
 on s.n=class
 
-37
---
+-- Задание: 37
+-- Найдите классы, в которые входит только один корабль из базы данных (учесть также корабли в Outcomes).
 
-38
---
+select c.class
+from classes c
+join ships s
+on c.class=s.class
+group by c.class
+having count(*)=1
+union
+select c2.class
+from
+(select distinct ship from outcomes where ship not in (select name from ships)) s2
+join classes c2
+on s2.ship=c2.class
+group by c2.class
+having count(*)=1
+
+
+-- Задание: 38
+-- Найдите страны, имевшие когда-либо классы обычных боевых кораблей ('bb') и имевшие когда-либо классы крейсеров ('bc').
+
 select country
 from classes
 where type='bb'
@@ -351,11 +405,27 @@ select country
 from classes
 where type='bc'
 
-39
---
+-- Задание: 39
+-- Найдите корабли, `сохранившиеся для будущих сражений`; т.е. выведенные из строя в одной битве (damaged), они участвовали в другой, произошедшей позже.
 
-40
---
+select o1.ship
+from
+(select *
+from outcomes o
+join battles b
+on o.battle=b.name
+where result='damaged') o1
+join
+(select *
+from outcomes o
+join battles b
+on o.battle=b.name) o2
+on o1.ship=o2.ship
+  and o1.date<o2.date
+
+-- Задание: 40
+--Найти производителей, которые выпускают более одной модели, при этом все выпускаемые производителем модели являются продуктами одного типа. Вывести: maker, type
+
 select p2.maker, p2.type
 from
 (select p1.maker
@@ -368,12 +438,3 @@ join product p2
 on p.maker=p2.maker
 group by p2.maker, p2.type
 having count(*)>1
-
-
-
-
-
-
-
-
-
